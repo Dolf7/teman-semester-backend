@@ -22,7 +22,7 @@ db.connect((err) =>{
 })
 
 export const getUsers = (req, res) =>{
-    let sql = `SELECT * FROM ${table}`;
+    let sql = `SELECT * FROM ${table} where username`;
     db.query(sql, (err, result)=>{
         if(err) throw err;
         console.log(result);
@@ -101,48 +101,3 @@ export const updateUser = async function (req, res){
     }, 100);
     await res.send(`Success update user with username "${username}"`);
 };
-
-function authenticate(req, res) {
-    const username = req.body.username;
-    const user = {username:username};
-    // console.log(process.env.ACCESS_TOKEN_SECRET);
-
-    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
-    res.json({"accessToken":accessToken});
-}
-
-export const login = (req, res) =>{
-    db.query(`SELECT * FROM ${table} WHERE username = "${req.body.username}"`, (err, result)=>{
-        if(err) throw err;
-        bcrypt.compare(req.body.password, result[0]["password"], (err, result)=>{
-            if (err) throw err;
-            if (result) {
-                console.log("login successful");
-                authenticate(req, res);
-            } else {
-                console.log("ID atau Password salah");
-            }
-        })
-    })
-}
-
-export function authenticateToken(req, res, next){
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if(token == null) return res.sendStatus(401);
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user)=>{
-        if (err) return res.sendStatus(403);
-        req.user = user;
-        // res.send(user);
-        next();
-    });
-}
-
-export const user_after_log = ((req, res) => {
-    // console.log(req.user);
-    db.query(`SELECT * FROM ${table} WHERE username = "${req.user.username}"`,(err, result) => {
-       if (err) throw err;
-       res.json(result);
-    })
-})

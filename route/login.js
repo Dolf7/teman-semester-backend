@@ -1,8 +1,10 @@
 import express from "express";
 
-import { login } from "../controllers/users_c.js";
+import { login, authenticateToken, user_after_log} from "../controllers/auth.js";
 
 const router = express.Router();
+
+router.get('/', authenticateToken, user_after_log);
 
 router.post('/', login);
 
