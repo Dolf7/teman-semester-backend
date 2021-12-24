@@ -22,7 +22,7 @@ db.connect((err) =>{
 })
 
 export const getUsers = (req, res) =>{
-    let sql = `SELECT * FROM ${table} where username`;
+    let sql = `SELECT * FROM ${table}`;
     db.query(sql, (err, result)=>{
         if(err) throw err;
         console.log(result);
