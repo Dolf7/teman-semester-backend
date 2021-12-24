@@ -5,7 +5,7 @@ import { request } from 'express';
 import jwt from 'jsonwebtoken';
 import { resourceLimits } from 'worker_threads';
 const require = createRequire(import.meta.url);
-require('dotenv').config
+require('dotenv').config();
 
 const table = 'users';
 
@@ -13,7 +13,7 @@ const db = mysql.createConnection({
     host : 'localhost',
     user : 'root',
     database : 'testing',
-    password: 'dGVtYW5zZW1lc3Rlcgo='
+    password: process.env.db_password
 })
 
 db.connect((err) =>{
@@ -31,13 +31,13 @@ export const getUsers = (req, res) =>{
 }
 
 export const addUser = async function (req, res){
-    const SaltRound = 10;
+    const saltRound = 10;
     const user = req.body;
     let sql = `INSERT INTO ${table} VALUES(`;
     Object.keys(user).forEach(key => {
         if(key == "password"){
             try {
-                bcrypt.genSalt(SaltRound, (err, salt)=>{
+                bcrypt.genSalt(saltRound, (err, salt)=>{
                     bcrypt.hash(user[key], salt, (err, hash)=>{
                         sql += `"${hash}",`;        
                     })
@@ -71,51 +71,48 @@ export const deleteUser = (req, res) => {
     res.send(`User with username ${username} delete from database`);
 };
 
-export const updateUser = (req, res)=>{
-    const {username} = req.params;
-    const updated = req.body;
+export const updateUser = async function (req, res){
     const saltRound = 10;
-    let sql = `UPDATE ${table} SET `;
-    Object.keys(updated).forEach(async function (key) {
-        if (key == "password"){
+    const user = req.body;
+    const {username} = req.params;
+    let sql = `UPDATE ${table} SET`;
+    Object.keys(user).forEach(key => {
+        if(key == "password"){
             try {
-                const salt = await bcrypt.genSalt(saltRound);
-                const hash = await bcrypt.hash(updated['password'], salt);
-                sql += ` ${key}= ${hash},`;
-                res.sendStatus(201);
+                bcrypt.genSalt(saltRound, (err, salt)=>{
+                    bcrypt.hash(user[key], salt, (err, hash)=>{
+                        sql += ` ${key}="${hash}",`;        
+                    })
+                })
             } catch{
                 res.sendStatus(501);
             }
-        } else if(key == "username"){
-            res.send("you can't change the username");
-            res.sendStatus(501);
-            return;
-        } else 
-        sql += ` ${key}="${updated[key]}",`;
-    })
-    setTimeout(function(){
-        sql = sql.slice(0, -1);
-        sql += ` WHERE username="${username}"`;
-        db.query(sql, (err, result)=>{
-            if(err) throw err;
-            console.log(result);
-            res.send(`Account with username "${username}" has been updated`)
-        }, 1000);
-    })
-}
+        } else {
+            sql += `${key}="${user[key]}",`;
+        }
+    });
+    setTimeout(()=>{
+      sql = sql.slice(0, -1);
+      sql += ` WHERE username = "${username}"`;
+      db.query(sql, (err, result)=>{
+          if (err) throw err;
+          console.log(result);
+      })  
+    }, 100);
+    await res.send(`Success update user with username "${username}"`);
+};
 
 function authenticate(req, res) {
-    let user;
-    db.query(`SELECT ID FROM ${table} WHERE username = "${req.body.username}"`, (err, result)=>{
-        if(err) throw err;
-        user = {name : req.body.username};
-        const accessToken = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET);
-        res.json({accessToken:accessToken})  
-    })
+    const username = req.body.username;
+    const user = {username:username};
+    // console.log(process.env.ACCESS_TOKEN_SECRET);
+
+    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
+    res.json({"accessToken":accessToken});
 }
 
 export const login = (req, res) =>{
-    db.query(`SELECT FROM ${table} WHERE username = "${req.body.username}"`, (err, result)=>{
+    db.query(`SELECT * FROM ${table} WHERE username = "${req.body.username}"`, (err, result)=>{
         if(err) throw err;
         bcrypt.compare(req.body.password, result[0]["password"], (err, result)=>{
             if (err) throw err;
@@ -143,7 +140,8 @@ export function authenticateToken(req, res, next){
 }
 
 export const user_after_log = ((req, res) => {
-    db.query(`SELECT * FROM ${table} WHERE ID = "${req.user.id.ID}"`,(err, result) => {
+    // console.log(req.user);
+    db.query(`SELECT * FROM ${table} WHERE username = "${req.user.username}"`,(err, result) => {
        if (err) throw err;
        res.json(result);
     })
