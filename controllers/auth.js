@@ -11,9 +11,9 @@ const table = 'users';
 const auth_table = 'auth_token';
 
 const db = mysql.createConnection({
-    host : 'localhost',
-    user : 'root',
-    database : 'testing',
+    host : process.env.db_host,
+    user : process.env.db_user,
+    database : process.env.db_database,
     password: process.env.db_password
 })
 

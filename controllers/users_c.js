@@ -10,15 +10,15 @@ require('dotenv').config();
 const table = 'users';
 
 const db = mysql.createConnection({
-    host : 'localhost',
-    user : 'root',
-    database : 'testing',
+    host : process.env.db_host,
+    user : process.env.db_user,
+    database : process.env.db_database,
     password: process.env.db_password
 })
 
 db.connect((err) =>{
     if(err) throw err;
-    console.log('mysql Connected');
+    console.log('mysql to auth is Connected');
 })
 
 export const getUsers = (req, res) =>{
