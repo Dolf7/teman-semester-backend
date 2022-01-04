@@ -65,6 +65,7 @@ export const login = (req, res) =>{
                 authenticate(req, res);
             } else {
                 console.log("ID atau Password salah");
+                res.send("ID atau Password salah");
             }
         })
     })

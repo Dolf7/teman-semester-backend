@@ -18,7 +18,7 @@ const db = mysql.createConnection({
 
 db.connect((err) =>{
     if(err) throw err;
-    console.log('mysql to auth is Connected');
+    console.log('mysql to users is Connected');
 })
 
 export const getUsers = (req, res) =>{
