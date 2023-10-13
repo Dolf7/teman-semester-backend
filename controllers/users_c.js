@@ -56,7 +56,7 @@ export const addUser = async function (req, res){
           if (err) throw err;
           console.log(result);
       })  
-    }, 100);
+    }, 1000);
     await res.send(`Success add user with username ${user['username']}`);
 };
 
@@ -98,6 +98,6 @@ export const updateUser = async function (req, res){
           if (err) throw err;
           console.log(result);
       })  
-    }, 100);
+    }, 1000);
     await res.send(`Success update user with username "${username}"`);
 };

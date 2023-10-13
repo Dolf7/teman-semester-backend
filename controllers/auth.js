@@ -57,7 +57,10 @@ function generateAccesssToken(user){
 
 export const login = (req, res) =>{
     db.query(`SELECT * FROM ${table} WHERE username = "${req.body.username}"`, (err, result)=>{
-        if(err) throw err;
+        if(err){ throw err;
+            console.log("ID atau Password salah");
+            res.send("ID atau Password salah");
+        }
         bcrypt.compare(req.body.password, result[0]["password"], (err, result)=>{
             if (err) throw err;
             if (result) {
